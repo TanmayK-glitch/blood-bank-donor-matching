@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Bank Network</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: system-ui, -apple-system, sans-serif;
+            background-image: radial-gradient(circle at 15% 50%, rgba(35, 78, 82, 0.15), transparent 25%),
+                              radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15), transparent 25%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .form-control, .form-select {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+        .form-control:focus, .form-select:focus {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: #58a6ff;
+            color: #ffffff;
+            box-shadow: 0 0 0 0.25rem rgba(88, 166, 255, 0.25);
+        }
+        option { background-color: #0d1117; }
+        .table {
+            color: #c9d1d9;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .table th { border-bottom-color: rgba(255, 255, 255, 0.2); }
+        .table tbody tr:hover { background-color: rgba(255,255,255,0.05); color: white;}
+    </style>
+</head>
+<body class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5 text-white fw-bold tracking-tight">Blood Donor Matching System</h2>
+
+        <div class="row g-4">
+            <!-- Donor Registration Form -->
+            <div class="col-md-6">
+                <div class="glass-card h-100">
+                    <h4 class="mb-4 text-white">Register Donor</h4>
+                    <form id="donorForm">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary">Full Name</label>
+                            <input type="text" id="d_name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary">Blood Group</label>
+                            <select id="d_bg" class="form-select" required>
+                                <option value="A+">A+</option><option value="A-">A-</option>
+                                <option value="B+">B+</option><option value="B-">B-</option>
+                                <option value="O+">O+</option><option value="O-">O-</option>
+                                <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary">Contact Number</label>
+                            <input type="text" id="d_contact" class="form-control" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-secondary">City</label>
+                            <input type="text" id="d_city" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-outline-light w-100">Register</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Blood Request Form -->
+            <div class="col-md-6">
+                <div class="glass-card h-100">
+                    <h4 class="mb-4 text-white">Create Blood Request</h4>
+                    <form id="requestForm">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary">Bank ID</label>
+                            <input type="number" id="r_bank" class="form-control" placeholder="e.g. 1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary">Required Blood Group</label>
+                            <select id="r_bg" class="form-select" required>
+                                <option value="A+">A+</option><option value="A-">A-</option>
+                                <option value="B+">B+</option><option value="B-">B-</option>
+                                <option value="O+">O+</option><option value="O-">O-</option>
+                                <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary">Quantity (Units)</label>
+                            <input type="number" id="r_qty" class="form-control" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-secondary">Urgency Level</label>
+                            <select id="r_urgency" class="form-select" required>
+                                <option value="Normal">Normal</option>
+                                <option value="High">High</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">Submit Request</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Real-Time Inventory Dashboard -->
+            <div class="col-12 mt-5">
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="text-white mb-0">Live Blood Inventory</h4>
+                        <button onclick="fetchInventory()" class="btn btn-sm btn-outline-info">Refresh</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle">
+                            <thead class="text-secondary">
+                                <tr>
+                                    <th>Blood Bank</th>
+                                    <th>City</th>
+                                    <th>Blood Group</th>
+                                    <th>Units Available</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryBody">
+                                <!-- Data populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+
+        // Handle Donor Registration
+        document.getElementById("donorForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById("d_name").value,
+                blood_group: document.getElementById("d_bg").value,
+                contact_number: document.getElementById("d_contact").value,
+                city: document.getElementById("d_city").value
+            };
+            
+            const res = await fetch(`${API_URL}/donors/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+            
+            if(res.ok) {
+                alert("Donor registered successfully!");
+                e.target.reset();
+            } else {
+                alert("Error registering donor.");
+            }
+        });
+
+        // Handle Blood Request
+        document.getElementById("requestForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const data = {
+                bank_id: parseInt(document.getElementById("r_bank").value),
+                required_blood_group: document.getElementById("r_bg").value,
+                quantity: parseInt(document.getElementById("r_qty").value),
+                urgency_level: document.getElementById("r_urgency").value
+            };
+
+            const res = await fetch(`${API_URL}/requests/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            if(res.ok) {
+                alert("Blood request submitted!");
+                e.target.reset();
+            } else {
+                alert("Error submitting request. Check if Bank ID exists.");
+            }
+        });
+
+        // Fetch Inventory
+        async function fetchInventory() {
+            try {
+                const res = await fetch(`${API_URL}/inventory/`);
+                const data = await res.json();
+                const tbody = document.getElementById("inventoryBody");
+                tbody.innerHTML = "";
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='4' class='text-center'>No inventory found. Run your SQL insert script!</td></tr>";
+                    return;
+                }
+
+                data.forEach(row => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="text-white">${row.Bank_Name}</td>
+                            <td>${row.City}</td>
+                            <td><span class="badge bg-danger">${row.Blood_Group}</span></td>
+                            <td>${row.Quantity_Available}</td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                console.error("Failed to fetch inventory", err);
+            }
+        }
+
+        // Load inventory on startup
+        fetchInventory();
+    </script>
+</body>
+</html>
