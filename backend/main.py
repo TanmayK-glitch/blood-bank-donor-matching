@@ -1,8 +1,14 @@
+import os
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import mysql.connector
 from mysql.connector import Error
+from dotenv import load_dotenv
+
+# Load .env from the backend/ directory (if it exists)
+load_dotenv(dotenv_path=Path(__file__).parent / ".env")
 
 app = FastAPI(title="Blood Bank API")
 
@@ -19,10 +25,10 @@ app.add_middleware(
 def get_db_connection():
     try:
         conn = mysql.connector.connect(
-            host="localhost",
-            user="root",          # Change this to your MySQL username
-            password="password",  # Change this to your MySQL password
-            database="blood_bank_db" # Ensure you created a database with this name
+            host=os.getenv("DB_HOST", "localhost"),
+            user=os.getenv("DB_USER", "root"),
+            password=os.getenv("DB_PASSWORD", ""),
+            database=os.getenv("DB_NAME", "blood_bank_db")
         )
         return conn
     except Error as e:
